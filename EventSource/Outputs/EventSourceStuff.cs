@@ -98,8 +98,15 @@ namespace EventSource.Outputs
 
                 case PersonNameUpdatedEvent e:
                     var person = data.Person.Single(x => x.Id == e.PersonId);
-                    person.Name = e.Name;
-                    person.Firstname = e.FirstName;
+                    data.Person.Remove(person);
+                    var newperson = new Person
+                    {
+                        Id = person.Id,
+                        Name = e.Name,
+                        Firstname = e.FirstName,
+                        DateOfBirth = person.DateOfBirth
+                    };
+                    data.Person.Add(newperson);
                     break;
 
                 case PersonDeletedEvent e:
