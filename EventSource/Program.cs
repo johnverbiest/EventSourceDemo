@@ -2,6 +2,8 @@
 using EventSource.Outputs;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
+using System.Linq;
 using System.Text.Json;
 
 namespace EventSource
@@ -12,50 +14,58 @@ namespace EventSource
         {
             // This is the event store
             var events = new List<IAwesomeEvent>();
-
-            // A user adds a person
-            var command = new Commands.CreateNewPersonCommand()
-            {
-                Person = new Dto.Person
-                {
-                    Id = 1,
-                    Name = "Rogers",
-                    Firstname = "Steven",
-                    DateOfBirth = new DateTime(1903, 2, 8)
-                }
-            };
-
-            // this is send to a commandhandler
-            // Normally this looks like _commandhandler.handle(command), but for the sake of the demo i made it easy for me
-            var handler = new Commands.CreateNewPersonCommandHandler(events);
-            handler.Execute(command);
+            events.RunSetupPart2();
             events.PrintEvents();
             Console.WriteLine($"Getting the list of people in the pool now (cached):\n{string.Join(", ", events.GetPersons())}");
-            
+            Console.WriteLine();
 
 
-            
+
+
             Console.WriteLine();
-            Console.WriteLine("Only one person in our pool is rather boring, lets add 3 more");
+            Console.WriteLine("Now that we have our mini-avenger team, let's create an account for Peter Parker");
             Console.ReadLine();
-            events.AddMorePeople();
-            events.PrintEvents();
-            Console.WriteLine($"Getting the list of people in the pool now (cached):\n{string.Join(", ", events.GetPersons())}");
-            
-            
-            
-            
-            Console.WriteLine();
-            Console.WriteLine("I made a mistake in naming the 4th person, Changing the name using an PersonNameUpdatedEvent");
-            Console.ReadLine();
-            events.AddAndRun(new Events.PersonNameUpdatedEvent()
+            events.AddAndRun(new Events.AccountCreatedEvent(new Dto.Account
             {
-                PersonId = 4,
-                Name = "van Dyne",
-                FirstName = "Janet"
+                AccountId = 1,
+                PersonId = 3,
+                Username = "The Amazing",
+                Password = "Spiderman"
+                
+            }));
+            events.PrintEvents();
+            Console.WriteLine($"Getting the list of people in the pool now (cached):\n{string.Join("\n", events.GetPersonsWithAccounts())}");
+            Console.WriteLine();
+
+
+
+
+            Console.WriteLine();
+            Console.WriteLine("We need more accounts to work with... let's do this!");
+            Console.ReadLine();
+            events.AddMoreAccounts();
+            events.PrintEvents();
+            Console.WriteLine($"Getting the list of people in the pool now (cached):\n{string.Join("\n", events.GetPersonsWithAccounts())}");
+            Console.WriteLine();
+
+
+
+
+            Console.WriteLine();
+            Console.WriteLine("Silly me! Peter now has 2 accounts and Rogers wants another username... Lets's fix this with a AccountUsernameUpdatedEvent and a AccountDeletedEvent ");
+            Console.ReadLine();
+            events.AddAndRun(new Events.AccountUsernameUpdatedEvent()
+            {
+                AccountId=3,
+                UserName="Captain America"
+            });
+
+            events.AddAndRun(new Events.AccountDeletedEvent()
+            {
+                AccountId=2
             });
             events.PrintEvents();
-            Console.WriteLine($"Getting the list of people in the pool now (cached):\n{string.Join(", ", events.GetPersons())}");
+            Console.WriteLine($"Getting the list of people in the pool now (cached):\n{string.Join("\n", events.GetPersonsWithAccounts())}");
             Console.WriteLine();
 
 
@@ -63,15 +73,35 @@ namespace EventSource
 
 
             Console.WriteLine();
-            Console.WriteLine("It seems that mister Stark won't be joining us, let's remove him with an PersonDeletedEvent");
+            Console.WriteLine("Sadly, our Wasp does not langer wants to play with us, let's delete her from the system");
             Console.ReadLine();
             events.AddAndRun(new Events.PersonDeletedEvent()
             {
-                PersonId = 2
+                PersonId=4
             });
             events.PrintEvents();
-            Console.WriteLine($"Getting the list of people in the pool now (cached):\n{string.Join(", ", events.GetPersons())}");
+            Console.WriteLine($"Getting the list of people in the pool now (cached):\n{string.Join("\n", events.GetPersonsWithAccounts())}");
             Console.WriteLine();
+
+
+
+
+            Console.WriteLine();
+            Console.WriteLine("Let's look at the final result of the 'read only' database");
+            Console.ReadLine();
+            Console.Clear();
+            var eventsInStupidOrder = events.OrderBy(x => x.Id).ToList();
+            var timer = Stopwatch.StartNew();
+            var data = eventsInStupidOrder.RunAllEvents();
+            timer.Stop();
+            eventsInStupidOrder.PrintEvents();
+            Console.WriteLine();
+            Console.WriteLine();
+            Console.WriteLine();
+            Console.WriteLine(Newtonsoft.Json.JsonConvert.SerializeObject(data, Newtonsoft.Json.Formatting.Indented));
+            Console.WriteLine();
+            Console.WriteLine($"Replay done in {timer.ElapsedMilliseconds} ms");
         }
     }
+
 }

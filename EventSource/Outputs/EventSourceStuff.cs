@@ -13,7 +13,8 @@ namespace EventSource.Outputs
 
         public class EventSourceData
         {
-            public List<Person> Person { get; set; } = new List<Person>();
+            public List<Person> Persons { get; set; } = new List<Person>();
+            public List<Account> Accounts { get; set; } = new List<Account>();
         }
         private static readonly EventSourceData cachedData = new();
 
@@ -28,18 +29,18 @@ namespace EventSource.Outputs
         public static EventSourceData RunAllEvents(this List<IAwesomeEvent> events)
         {
             // Start from 0
-            var cachedData = new EventSourceData();
+            var data = new EventSourceData();
 
 
             // Process each event
             foreach (var ev in events.OrderBy(x => x.FiredAt))
             {
-                cachedData.Run(ev);
+                data.Run(ev);
             }
 
 
             // Return the data
-            return cachedData;
+            return data;
         }
 
 
@@ -93,26 +94,88 @@ namespace EventSource.Outputs
             switch (ev)
             {
                 case PersonCreatedEvent e:
-                    data.Person.Add(e.Person);
+                    AddPerson(data, e);
                     break;
 
                 case PersonNameUpdatedEvent e:
-                    var person = data.Person.Single(x => x.Id == e.PersonId);
-                    data.Person.Remove(person);
-                    var newperson = new Person
-                    {
-                        Id = person.Id,
-                        Name = e.Name,
-                        Firstname = e.FirstName,
-                        DateOfBirth = person.DateOfBirth
-                    };
-                    data.Person.Add(newperson);
+                    UpdatePersonName(data, e);
                     break;
 
                 case PersonDeletedEvent e:
-                    data.Person.RemoveAll(x => x.Id == e.PersonId);
+                    DeletePerson(data, e);
+                    DeleteAccount(data, e);
+                    break;
+
+
+
+                case AccountCreatedEvent e:
+                    AddAccount(data, e);
+                    break;
+
+                case AccountUsernameUpdatedEvent e:
+                    UpdateAccountUsername(data, e);
+                    break;
+
+                case AccountDeletedEvent e:
+                    DeleteAccount(data, e);
                     break;
             }
+        }
+
+
+
+        private static void DeleteAccount(EventSourceData data, AccountDeletedEvent e)
+        {
+            data.Accounts.RemoveAll(x => x.AccountId == e.AccountId);
+        }
+
+        private static void DeleteAccount(EventSourceData data, PersonDeletedEvent e)
+        {
+            data.Accounts.RemoveAll(x => x.PersonId == e.PersonId);
+        }
+
+        private static void UpdateAccountUsername(EventSourceData data, AccountUsernameUpdatedEvent e)
+        {
+            var account = data.Accounts.Single(x => x.AccountId == e.AccountId);
+            data.Accounts.Remove(account);
+            var newaccount = new Account
+            {
+                AccountId = account.AccountId,
+                Username = e.UserName,
+                Password = account.Password,
+                PersonId = account.PersonId
+
+            };
+            data.Accounts.Add(newaccount);
+        }
+
+        private static void AddAccount(EventSourceData data, AccountCreatedEvent e)
+        {
+            data.Accounts.Add(e.Account);
+        }
+
+        private static void DeletePerson(EventSourceData data, PersonDeletedEvent e)
+        {
+            data.Persons.RemoveAll(x => x.Id == e.PersonId);
+        }
+
+        private static void UpdatePersonName(EventSourceData data, PersonNameUpdatedEvent e)
+        {
+            var person = data.Persons.Single(x => x.Id == e.PersonId);
+            data.Persons.Remove(person);
+            var newperson = new Person
+            {
+                Id = person.Id,
+                Name = e.Name,
+                Firstname = e.FirstName,
+                DateOfBirth = person.DateOfBirth
+            };
+            data.Persons.Add(newperson);
+        }
+
+        private static void AddPerson(EventSourceData data, PersonCreatedEvent e)
+        {
+            data.Persons.Add(e.Person);
         }
 
 
@@ -124,7 +187,13 @@ namespace EventSource.Outputs
         /// <returns></returns>
         public static IEnumerable<string> GetPersons(this List<IAwesomeEvent> events)
         {
-            return cachedData.Person.Select(e => e.Name);
+            return cachedData.Persons.Select(e => e.Name);
+        }
+
+
+        public static IEnumerable<string> GetPersonsWithAccounts(this List<IAwesomeEvent> events)
+        {
+            return cachedData.Persons.Select(p => $"\nPERSON: {p.Name}, {p.Firstname}: \n{string.Join("\n", cachedData.Accounts.Where(a => a.PersonId == p.Id).Select(a => " - ACCOUNT username:" + a.Username))}");
         }
     }
 }
