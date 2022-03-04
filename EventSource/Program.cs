@@ -84,6 +84,18 @@ namespace EventSource
             Console.WriteLine();
 
 
+            Console.WriteLine();
+            Console.WriteLine("Hooray, our Wasp does want to play with us, let's undelete her from the system");
+            Console.ReadLine();
+            // lets find the delete we want to undo
+            var deleteEvent = events.OfType<Events.PersonDeletedEvent>().Single(x => x.PersonId == 4);
+            events.AddAndRun(new Events.PersonUndeletedEvent()
+            {
+                EventId = deleteEvent.Id
+            });
+            events.PrintEvents();
+            Console.WriteLine($"Getting the list of people in the pool now (cached):\n{string.Join("\n", events.GetPersonsWithAccounts())}");
+            Console.WriteLine();
 
 
             Console.WriteLine();

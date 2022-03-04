@@ -35,7 +35,7 @@ namespace EventSource.Outputs
             // Process each event
             foreach (var ev in events.OrderBy(x => x.FiredAt))
             {
-                data.Run(ev);
+                data.Run(ev, events);
             }
 
 
@@ -55,7 +55,7 @@ namespace EventSource.Outputs
         public static void AddAndRun(this List<IAwesomeEvent> events, IAwesomeEvent ev)
         {
             events.Add(ev);
-            cachedData.Run(ev);
+            cachedData.Run(ev, events);
         }
 
 
@@ -89,7 +89,7 @@ namespace EventSource.Outputs
         /// </summary>
         /// <param name="data"></param>
         /// <param name="ev"></param>
-        public static void Run(this EventSourceData data, IAwesomeEvent ev)
+        public static void Run(this EventSourceData data, IAwesomeEvent ev, List<IAwesomeEvent> events)
         {
             switch (ev)
             {
@@ -105,7 +105,9 @@ namespace EventSource.Outputs
                     DeletePerson(data, e);
                     DeleteAccount(data, e);
                     break;
-
+                case PersonUndeletedEvent e:
+                    UndeletePerson(data, events, e);
+                    break;
 
 
                 case AccountCreatedEvent e:
@@ -122,7 +124,18 @@ namespace EventSource.Outputs
             }
         }
 
+        private static void UndeletePerson(EventSourceData data, List<IAwesomeEvent> events, PersonUndeletedEvent e)
+        {
+            var deleteEvent = events.OfType<PersonDeletedEvent>().Single(x => x.Id == e.EventId);
+            var rebuildEvents = events.Where(x => x.FiredAt < deleteEvent.FiredAt).ToList();
+            var stateBeforeDeletion = rebuildEvents.RunAllEvents();
 
+            var person = stateBeforeDeletion.Persons.Single(x => x.Id == deleteEvent.PersonId);
+            var accounts = stateBeforeDeletion.Accounts.Where(x => x.PersonId == person.Id);
+
+            data.Persons.Add(person);
+            data.Accounts.AddRange(accounts);
+        }
 
         private static void DeleteAccount(EventSourceData data, AccountDeletedEvent e)
         {
