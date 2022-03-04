@@ -12,5 +12,6 @@ namespace EventSource.Dto
         public int PersonId { get; set; }
         public string Username { get; set; }
         public string Password { get; set; }
+        public List<Role> Roles { get; set; } = new List<Role>();
     }
 }

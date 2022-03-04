@@ -16,6 +16,7 @@ namespace EventSource.Outputs
             public List<Person> Persons { get; set; } = new List<Person>();
             public List<Account> Accounts { get; set; } = new List<Account>();
             public List<Role> Roles { get; set; } = new List<Role>();
+
         }
         private static readonly EventSourceData cachedData = new();
 
@@ -135,7 +136,25 @@ namespace EventSource.Outputs
                 case RoleDeletedEvent e:
                     DeleteRole(data, e);
                     break;
+
+                case RoleAssignedEvent e:
+                    AssignRole(data, e);
+                    break;
+
+                case RoleRevokedEvent e:
+                    RevokeRole(data, e);
+                    break;
             }
+        }
+
+        private static void RevokeRole(EventSourceData data, RoleRevokedEvent e)
+        {
+            data.Accounts.Single(x => x.AccountId == e.AccountId).Roles.Remove(data.Roles.Single(x => x.Id == e.RoleId));
+        }
+
+        private static void AssignRole(EventSourceData data, RoleAssignedEvent e)
+        {
+            data.Accounts.Single(x => x.AccountId == e.AccountId).Roles.Add(data.Roles.Single(x => x.Id == e.RoleId));
         }
 
         private static void DeleteRole(EventSourceData data, RoleDeletedEvent e)
@@ -242,7 +261,7 @@ namespace EventSource.Outputs
 
         public static IEnumerable<string> GetPersonsWithAccounts(this List<IAwesomeEvent> events)
         {
-            return cachedData.Persons.Select(p => $"\nPERSON: {p.Name}, {p.Firstname}: \n{string.Join("\n", cachedData.Accounts.Where(a => a.PersonId == p.Id).Select(a => " - ACCOUNT username:" + a.Username))}");
+            return cachedData.Persons.Select(p => $"\nPERSON: {p.Name}, {p.Firstname}: \n{string.Join("\n", cachedData.Accounts.Where(a => a.PersonId == p.Id).Select(a => " - ACCOUNT username:" + a.Username + "\n           roles: " + String.Join(",", a.Roles.Select(x => x.Name))))}");
         }
     }
 }
