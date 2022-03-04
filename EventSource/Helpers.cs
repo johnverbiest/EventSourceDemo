@@ -70,5 +70,67 @@ namespace EventSource
                 Password = "Bzzzz"
             }));
         }
+
+
+        public static void RunSetupPart3(this List<IAwesomeEvent> events)
+        {
+            events.RunSetupPart2();
+            events.AddAndRun(new Events.AccountCreatedEvent(new Dto.Account
+            {
+                AccountId = 1,
+                PersonId = 3,
+                Username = "The Amazing",
+                Password = "Spiderman"
+
+            }));
+            events.AddMoreAccounts();
+            events.AddAndRun(new Events.AccountUsernameUpdatedEvent()
+            {
+                AccountId = 3,
+                UserName = "Captain America"
+            });
+            events.AddAndRun(new Events.AccountDeletedEvent()
+            {
+                AccountId = 2
+            });
+            events.AddAndRun(new Events.PersonDeletedEvent()
+            {
+                PersonId = 4
+            });
+            var deleteEvent = events.OfType<Events.PersonDeletedEvent>().Single(x => x.PersonId == 4);
+            events.AddAndRun(new Events.PersonUndeletedEvent()
+            {
+                EventId = deleteEvent.Id
+            });
+        }
+
+        public static void AddSomeRoles(this List<IAwesomeEvent> events)
+        {
+            events.AddAndRun(new Events.RoleCreatedEvent(new Dto.Role
+            {
+                Id = 1,
+                Name = "Administrator"
+            }));
+            events.AddAndRun(new Events.RoleCreatedEvent(new Dto.Role
+            {
+                Id = 2,
+                Name = "Cleaning Lady"
+            }));
+            events.AddAndRun(new Events.RoleCreatedEvent(new Dto.Role
+            {
+                Id = 3,
+                Name = "Mr Worldwide"
+            }));
+            events.AddAndRun(new Events.RoleCreatedEvent(new Dto.Role
+            {
+                Id = 4,
+                Name = "Reader"
+            }));
+            events.AddAndRun(new Events.RoleCreatedEvent(new Dto.Role
+            {
+                Id = 5,
+                Name = "Writer"
+            }));
+        }
     }
 }

@@ -14,85 +14,16 @@ namespace EventSource
         {
             // This is the event store
             var events = new List<IAwesomeEvent>();
-            events.RunSetupPart2();
+            events.RunSetupPart3();
             events.PrintEvents();
             Console.WriteLine($"Getting the list of people in the pool now (cached):\n{string.Join(", ", events.GetPersons())}");
             Console.WriteLine();
 
 
-
-
             Console.WriteLine();
-            Console.WriteLine("Now that we have our mini-avenger team, let's create an account for Peter Parker");
+            Console.WriteLine("First let's go ahead and add some roles");
             Console.ReadLine();
-            events.AddAndRun(new Events.AccountCreatedEvent(new Dto.Account
-            {
-                AccountId = 1,
-                PersonId = 3,
-                Username = "The Amazing",
-                Password = "Spiderman"
-                
-            }));
-            events.PrintEvents();
-            Console.WriteLine($"Getting the list of people in the pool now (cached):\n{string.Join("\n", events.GetPersonsWithAccounts())}");
-            Console.WriteLine();
-
-
-
-
-            Console.WriteLine();
-            Console.WriteLine("We need more accounts to work with... let's do this!");
-            Console.ReadLine();
-            events.AddMoreAccounts();
-            events.PrintEvents();
-            Console.WriteLine($"Getting the list of people in the pool now (cached):\n{string.Join("\n", events.GetPersonsWithAccounts())}");
-            Console.WriteLine();
-
-
-
-
-            Console.WriteLine();
-            Console.WriteLine("Silly me! Peter now has 2 accounts and Rogers wants another username... Lets's fix this with a AccountUsernameUpdatedEvent and a AccountDeletedEvent ");
-            Console.ReadLine();
-            events.AddAndRun(new Events.AccountUsernameUpdatedEvent()
-            {
-                AccountId=3,
-                UserName="Captain America"
-            });
-
-            events.AddAndRun(new Events.AccountDeletedEvent()
-            {
-                AccountId=2
-            });
-            events.PrintEvents();
-            Console.WriteLine($"Getting the list of people in the pool now (cached):\n{string.Join("\n", events.GetPersonsWithAccounts())}");
-            Console.WriteLine();
-
-
-
-
-
-            Console.WriteLine();
-            Console.WriteLine("Sadly, our Wasp does not langer wants to play with us, let's delete her from the system");
-            Console.ReadLine();
-            events.AddAndRun(new Events.PersonDeletedEvent()
-            {
-                PersonId=4
-            });
-            events.PrintEvents();
-            Console.WriteLine($"Getting the list of people in the pool now (cached):\n{string.Join("\n", events.GetPersonsWithAccounts())}");
-            Console.WriteLine();
-
-
-            Console.WriteLine();
-            Console.WriteLine("Hooray, our Wasp does want to play with us, let's undelete her from the system");
-            Console.ReadLine();
-            // lets find the delete we want to undo
-            var deleteEvent = events.OfType<Events.PersonDeletedEvent>().Single(x => x.PersonId == 4);
-            events.AddAndRun(new Events.PersonUndeletedEvent()
-            {
-                EventId = deleteEvent.Id
-            });
+            events.AddSomeRoles();
             events.PrintEvents();
             Console.WriteLine($"Getting the list of people in the pool now (cached):\n{string.Join("\n", events.GetPersonsWithAccounts())}");
             Console.WriteLine();

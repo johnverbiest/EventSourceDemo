@@ -15,6 +15,7 @@ namespace EventSource.Outputs
         {
             public List<Person> Persons { get; set; } = new List<Person>();
             public List<Account> Accounts { get; set; } = new List<Account>();
+            public List<Role> Roles { get; set; } = new List<Role>();
         }
         private static readonly EventSourceData cachedData = new();
 
@@ -121,7 +122,42 @@ namespace EventSource.Outputs
                 case AccountDeletedEvent e:
                     DeleteAccount(data, e);
                     break;
+
+
+                case RoleCreatedEvent e:
+                    AddRole(data, e);
+                    break;
+
+                case RoleNameUpdatedEvent e:
+                    UpdateRoleName(data, e);
+                    break;
+
+                case RoleDeletedEvent e:
+                    DeleteRole(data, e);
+                    break;
             }
+        }
+
+        private static void DeleteRole(EventSourceData data, RoleDeletedEvent e)
+        {
+            data.Roles.RemoveAll(x => x.Id == e.RoleId);
+        }
+
+        private static void UpdateRoleName(EventSourceData data, RoleNameUpdatedEvent e)
+        {
+            var role = data.Roles.Single(x => x.Id == e.RoleId);
+            data.Roles.Remove(role);
+            var newrole = new Role
+            {
+                Id = role.Id,
+                Name = e.Name,
+            };
+            data.Roles.Add(newrole);
+        }
+
+        private static void AddRole(EventSourceData data, RoleCreatedEvent e)
+        {
+            data.Roles.Add(e.Role);
         }
 
         private static void UndeletePerson(EventSourceData data, List<IAwesomeEvent> events, PersonUndeletedEvent e)
