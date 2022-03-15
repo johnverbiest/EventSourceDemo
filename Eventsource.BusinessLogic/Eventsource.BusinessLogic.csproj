@@ -15,10 +15,12 @@
 
   <ItemGroup>
     <Folder Include="Commands\CreateAccount\" />
+    <Folder Include="Commands\SendNewAccountToManager\" />
     <Folder Include="Commands\SendWelcomeMail\" />
     <Folder Include="EventStore\DataAccess\" />
     <Folder Include="Events\AccountCreated\Policies\" />
     <Folder Include="Dependencies\" />
+    <Folder Include="Events\NewAccountMailedToManager\" />
     <Folder Include="Events\WelcomeMailSent\" />
   </ItemGroup>
 
