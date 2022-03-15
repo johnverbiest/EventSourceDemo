@@ -7,6 +7,7 @@
   <ItemGroup>
     <Folder Include="Dependencies\" />
     <Folder Include="Common\" />
+    <Folder Include="Queries\" />
   </ItemGroup>
 
 </Project>
