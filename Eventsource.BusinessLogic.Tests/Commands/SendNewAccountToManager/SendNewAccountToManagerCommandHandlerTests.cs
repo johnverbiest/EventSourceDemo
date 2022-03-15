@@ -5,8 +5,10 @@ using Eventsource.BusinessLogic.Dependencies;
 using Eventsource.BusinessLogic.Events.AccountCreated;
 using Eventsource.BusinessLogic.Events.NewAccountMailedToManager;
 using Eventsource.BusinessLogic.Events.WelcomeMailSent;
+using Eventsource.BusinessLogic.Queries.AllActiveAccountsQuery;
 using FakeItEasy;
 using JohnVerbiest.CQRS.Events;
+using JohnVerbiest.CQRS.Queries;
 using Xunit;
 
 namespace Eventsource.BusinessLogic.Tests.Commands.SendNewAccountToManager;
@@ -41,18 +43,18 @@ public class SendNewAccountToManagerCommandHandlerTests
     }
 
     [Theory, UnitTest]
-    public async Task SendNewAccountToManagerCommandHandler_OnHandle_ShouldEmailNameToManager([Frozen] IEventDistributor distributor, [Frozen]IEventPersistance store, AccountCreatedEvent initialEvent, SendNewAccountToManagerCommand command, SendNewAccountToManagerCommandHandler sut)
+    public async Task SendNewAccountToManagerCommandHandler_OnHandle_ShouldEmailNameToManager([Frozen] IEventDistributor distributor, [Frozen]IQueryHandler<AccountNameQuery, AccountNameQuery.Result> query, string name, SendNewAccountToManagerCommand command, SendNewAccountToManagerCommandHandler sut)
     {
         // Arrange
-        command.AccountNumber = initialEvent.AccountNumber;
-        A.CallTo(() => store.LoadEvents()).WithAnyArguments().Returns(new[] { initialEvent });
+        A.CallTo(() => query.Handle(A<AccountNameQuery>.That.Matches(q => q.AccountNumber == command.AccountNumber)))
+            .Returns(new AccountNameQuery.Result() { AccountName = name });
 
         // Act
         await sut.ExecuteAsync(command);
 
         // Assert
         A.CallTo(() => distributor.Distribute(A<NewAccountMailedToManagerEvent>.That.Matches(e =>
-                e.AccountNumber == command.AccountNumber && e.Content.Contains(initialEvent.Name))))
+                e.AccountNumber == command.AccountNumber && e.Content.Contains(name))))
             .MustHaveHappenedOnceExactly();
     }
 }

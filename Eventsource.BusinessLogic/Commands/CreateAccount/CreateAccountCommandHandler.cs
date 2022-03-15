@@ -1,30 +1,31 @@
 ﻿using System.Threading.Tasks;
 using Eventsource.BusinessLogic.Dependencies;
 using Eventsource.BusinessLogic.Events.AccountCreated;
-using Eventsource.BusinessLogic.EventStore.DataAccess;
+using Eventsource.BusinessLogic.Queries.AllActiveAccountsQuery;
 using JohnVerbiest.CQRS.Commands;
 using JohnVerbiest.CQRS.Events;
+using JohnVerbiest.CQRS.Queries;
 
 namespace Eventsource.BusinessLogic.Commands.CreateAccount
 {
     public class CreateAccountCommandHandler: ICommandHandler<CreateAccountCommand>
     {
         private readonly IEventDistributor _eventDistributor;
-        private readonly IEventPersistance _eventPersistance;
+        private readonly IQueryHandler<HighestAccountNumberQuery, HighestAccountNumberQuery.Result> _highestAccountNumberQueryHandler;
 
-        public CreateAccountCommandHandler(IEventDistributor eventDistributor, IEventPersistance eventPersistance)
+        public CreateAccountCommandHandler(IEventDistributor eventDistributor, IQueryHandler<HighestAccountNumberQuery, HighestAccountNumberQuery.Result> highestAccountNumberQueryHandler)
         {
             _eventDistributor = eventDistributor;
-            _eventPersistance = eventPersistance;
+            _highestAccountNumberQueryHandler = highestAccountNumberQueryHandler;
         }
 
         public async Task ExecuteAsync(CreateAccountCommand command)
         {
-            var highestNumber = await _eventPersistance.GetHighestAccountNumber();
+            var highestNumber = await _highestAccountNumberQueryHandler.Handle(new HighestAccountNumberQuery());
 
             await _eventDistributor.Distribute(new AccountCreatedEvent()
             {
-                AccountNumber = highestNumber + 1,
+                AccountNumber = highestNumber.HighestAccountNumber + 1,
                 Name = command.Name
             });
         }

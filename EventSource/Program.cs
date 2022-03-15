@@ -1,6 +1,7 @@
 ﻿using System;
 using Autofac;
 using Eventsource.BusinessLogic.Commands.CreateAccount;
+using Eventsource.Datalayer;
 using JohnVerbiest.CQRS.Commands;
 
 
@@ -16,6 +17,7 @@ internal class Program
         var builder = new ContainerBuilder();
         builder.RegisterAssemblyTypes(typeof(CreateAccountCommand).Assembly).AsImplementedInterfaces().SingleInstance();
         builder.RegisterAssemblyTypes(typeof(CommandQueue).Assembly).AsImplementedInterfaces().SingleInstance();
+        builder.RegisterAssemblyTypes(typeof(EventPersistance).Assembly).AsImplementedInterfaces().SingleInstance();
         builder.RegisterAssemblyTypes(typeof(Program).Assembly).AsImplementedInterfaces().SingleInstance();
 
         var container = builder.Build();

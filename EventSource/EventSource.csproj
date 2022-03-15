@@ -13,6 +13,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Eventsource.BusinessLogic\Eventsource.BusinessLogic.csproj" />
+    <ProjectReference Include="..\Eventsource.Datalayer\Eventsource.Datalayer.csproj" />
   </ItemGroup>
 
 </Project>

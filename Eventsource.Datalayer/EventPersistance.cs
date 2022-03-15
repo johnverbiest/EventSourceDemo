@@ -1,15 +1,10 @@
-﻿using System;
-using System.Linq;
-using System.Text;
-using System.Text.Json;
-using System.Threading.Tasks;
+﻿using System.Text.Json;
 using Azure;
 using Azure.Data.Tables;
 using Eventsource.BusinessLogic.Dependencies;
 using Eventsource.BusinessLogic.Events;
-using JohnVerbiest.CQRS.Events;
 
-namespace EventSource;
+namespace Eventsource.Datalayer;
 
 public class EventPersistance: IEventPersistance
 {

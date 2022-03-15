@@ -4,8 +4,10 @@ using Eventsource.BusinessLogic.Commands.CreateAccount;
 using Eventsource.BusinessLogic.Dependencies;
 using Eventsource.BusinessLogic.Events;
 using Eventsource.BusinessLogic.Events.AccountCreated;
+using Eventsource.BusinessLogic.Queries.AllActiveAccountsQuery;
 using FakeItEasy;
 using JohnVerbiest.CQRS.Events;
+using JohnVerbiest.CQRS.Queries;
 using Xunit;
 
 namespace Eventsource.BusinessLogic.Tests.Commands.CreateAccount;
@@ -49,17 +51,15 @@ public class CreateAccountHandlerTests
     }
 
     [Theory, UnitTest]
-    public async Task CreateAccountCommandHandler_OnSubsequentAccountCreation_AccountNumberShoudBeMaxPlusOne([Frozen] IEventDistributor distributor, [Frozen] IEventPersistance eventStore, AccountCreatedEvent initialEvent, AccountCreatedEvent initialEvent2, CreateAccountCommand command, CreateAccountCommandHandler sut)
+    public async Task CreateAccountCommandHandler_OnSubsequentAccountCreation_AccountNumberShoudBeMaxPlusOne([Frozen] IEventDistributor distributor, [Frozen] IQueryHandler<HighestAccountNumberQuery, HighestAccountNumberQuery.Result> query, int highestAccountNumber, CreateAccountCommand command, CreateAccountCommandHandler sut)
     {
         // Arrange
-        initialEvent2.AccountNumber = initialEvent.AccountNumber - 20;
-        var expectedAccountNumber = initialEvent.AccountNumber + 1;
-        A.CallTo(() => eventStore.LoadEvents()).WithAnyArguments().Returns(new[] { initialEvent, initialEvent2 });
+        A.CallTo(() => query.Handle(A<HighestAccountNumberQuery>._)).Returns(new HighestAccountNumberQuery.Result() { HighestAccountNumber = highestAccountNumber});
 
         // Act
         await sut.ExecuteAsync(command);
 
         // Assert
-        A.CallTo(() => distributor.Distribute(A<AccountCreatedEvent>.That.Matches(x => x.AccountNumber == expectedAccountNumber))).MustHaveHappenedOnceExactly();
+        A.CallTo(() => distributor.Distribute(A<AccountCreatedEvent>.That.Matches(x => x.AccountNumber == highestAccountNumber + 1))).MustHaveHappenedOnceExactly();
     }
 }
