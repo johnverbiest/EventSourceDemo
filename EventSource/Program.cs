@@ -19,6 +19,7 @@ internal class Program
     private static ICommandQueue _commandQueue;
     private static IQueryHandler<AllActiveAccountsQuery, AllActiveAccountsQuery.Result> _accountsQueryHandler;
     private static IQueryHandler<AccountBalanceQuery, AccountBalanceQuery.Result> _accountBalanceQueryHandler;
+    private static IQueryHandler<AccountHistoryQuery, AccountHistoryQuery.Result> _accountHistoryQueryHandler;
 
     private static void Main(string[] args)
     {
@@ -35,6 +36,8 @@ internal class Program
             container.Resolve<IQueryHandler<AllActiveAccountsQuery, AllActiveAccountsQuery.Result>>();
         _accountBalanceQueryHandler =
             container.Resolve<IQueryHandler<AccountBalanceQuery, AccountBalanceQuery.Result>>();
+        _accountHistoryQueryHandler =
+            container.Resolve<IQueryHandler<AccountHistoryQuery, AccountHistoryQuery.Result>>();
 
         // This is the event store
         do
@@ -118,7 +121,7 @@ internal class Program
                 Console.WriteLine("What do you want to do?");
                 Console.WriteLine(" 0) Select other account");
                 Console.WriteLine(" 1) Deposit funds");
-                Console.WriteLine(" 2) Show Balance");
+                Console.WriteLine(" 2) Show History & Balance");
                 Console.WriteLine(" 3) Withdraw funds");
                 Console.WriteLine(" 4) Transfer funds");
 
@@ -141,6 +144,14 @@ internal class Program
                         break;
 
                     case "2":
+                        var history = _accountHistoryQueryHandler.Handle(new AccountHistoryQuery()
+                            { AccountNumber = account.AccountNumber }).Result.Events;
+                        foreach (var historyObject in history)
+                        {
+                            Console.WriteLine($"{historyObject.date.ToLocalTime():G}\t || {historyObject.Description} \t\t|| Balance: {historyObject.Balance}");
+                        }
+
+
                         // Show current balance
                         var themBalance = _accountBalanceQueryHandler.Handle(new AccountBalanceQuery()
                             { AccountNumber = account.AccountNumber }).Result.Balance;
