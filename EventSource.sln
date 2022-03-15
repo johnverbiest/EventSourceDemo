@@ -26,6 +26,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Datalayer", "Datalayer", "{
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Eventsource.Datalayer", "Eventsource.Datalayer\Eventsource.Datalayer.csproj", "{798AB885-35FD-4C72-9E95-82D40A9387D6}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Eventsource.Datalayer.Tests", "Eventsource.Datalayer.Tests\Eventsource.Datalayer.Tests.csproj", "{3822C848-CA7D-416D-8549-F454B5E6F6C3}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -56,6 +58,10 @@ Global
 		{798AB885-35FD-4C72-9E95-82D40A9387D6}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{798AB885-35FD-4C72-9E95-82D40A9387D6}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{798AB885-35FD-4C72-9E95-82D40A9387D6}.Release|Any CPU.Build.0 = Release|Any CPU
+		{3822C848-CA7D-416D-8549-F454B5E6F6C3}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{3822C848-CA7D-416D-8549-F454B5E6F6C3}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{3822C848-CA7D-416D-8549-F454B5E6F6C3}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{3822C848-CA7D-416D-8549-F454B5E6F6C3}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -66,6 +72,7 @@ Global
 		{A5523060-E0C9-4C99-A8B7-DF48A4865B28} = {D94609AC-8A59-43A9-86AC-29E2DC9E177F}
 		{B8DEB299-0509-45A2-97FA-C003A4C94BA0} = {D94609AC-8A59-43A9-86AC-29E2DC9E177F}
 		{798AB885-35FD-4C72-9E95-82D40A9387D6} = {E4D17093-21B8-4E1D-AC87-35AE66BFE100}
+		{3822C848-CA7D-416D-8549-F454B5E6F6C3} = {E4D17093-21B8-4E1D-AC87-35AE66BFE100}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {4A6C5A21-110F-4566-93D4-9452A714016A}

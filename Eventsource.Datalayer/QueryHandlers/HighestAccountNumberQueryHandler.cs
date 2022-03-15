@@ -7,9 +7,9 @@ namespace Eventsource.Datalayer.QueryHandlers
 {
     public class HighestAccountNumberQueryHandler: IQueryHandler<HighestAccountNumberQuery, HighestAccountNumberQuery.Result>
     {
-        private readonly IEventPersistance _store;
+        private readonly IEventStore _store;
 
-        public HighestAccountNumberQueryHandler(IEventPersistance store)
+        public HighestAccountNumberQueryHandler(IEventStore store)
         {
             _store = store;
         }

@@ -6,21 +6,21 @@ using JohnVerbiest.CQRS.Queries;
 
 namespace Eventsource.Datalayer.QueryHandlers;
 
-public class AccountNameQueryHandler: IQueryHandler<AccountNameQuery, AccountNameQuery.Result>
+public class AllActiveAccountsQueryHandler: IQueryHandler<AllActiveAccountsQuery, AllActiveAccountsQuery.Result>
 {
     private readonly IEventStore _store;
 
-    public AccountNameQueryHandler(IEventStore store)
+    public AllActiveAccountsQueryHandler(IEventStore store)
     {
         _store = store;
     }
 
-    public async Task<AccountNameQuery.Result> Handle(AccountNameQuery query)
+    public async Task<AllActiveAccountsQuery.Result> Handle(AllActiveAccountsQuery query)
     {
         var events = (await _store.LoadEvents(typeof(AccountCreatedEvent)));
 
         // Set default value
-        var currentName = "<Unknown>";
+        var results = new List<AllActiveAccountsQuery.Account>();
 
         // Go over all the events
         foreach (var @event in events)
@@ -28,13 +28,17 @@ public class AccountNameQueryHandler: IQueryHandler<AccountNameQuery, AccountNam
             switch (@event)
             {
                 case AccountCreatedEvent e:
-                    if (e.AccountNumber == query.AccountNumber) currentName = e.Name;
+                    results.Add(new AllActiveAccountsQuery.Account()
+                    {
+                        AccountNumber = e.AccountNumber,
+                        Name = e.Name
+                    });
                     break;
                 default:
                     throw new ConstraintException($"Event loaded without handler: {@event.GetType().Name}");
             }
         }
 
-        return new AccountNameQuery.Result() { AccountName = currentName };
+        return new AllActiveAccountsQuery.Result() { Accounts = results.ToArray()};
     }
 }

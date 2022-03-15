@@ -7,16 +7,16 @@ namespace Eventsource.BusinessLogic.EventStore
 {
     public class SaveItAllPolicy: IEventHandler<IBusinessLogicEvent>
     {
-        private readonly IEventPersistance _persistance;
+        private readonly IEventStore _store;
 
-        public SaveItAllPolicy(IEventPersistance persistance)
+        public SaveItAllPolicy(IEventStore store)
         {
-            _persistance = persistance;
+            _store = store;
         }
 
         public Task Handle(IBusinessLogicEvent @event)
         {
-            return _persistance.SaveEvent(@event);
+            return _store.SaveEvent(@event);
         }
     }
 }

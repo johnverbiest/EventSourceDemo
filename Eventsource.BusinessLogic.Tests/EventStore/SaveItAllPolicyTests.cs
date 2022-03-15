@@ -11,7 +11,7 @@ namespace Eventsource.BusinessLogic.Tests.EventStore;
 public class SaveItAllPolicyTests
 {
     [Theory, UnitTest]
-    public async Task SaveItAllPolicy_WhenActivated_ShouldSaveTheEvent([Frozen] IEventPersistance store, TestEvent @event, SaveItAllPolicy sut)
+    public async Task SaveItAllPolicy_WhenActivated_ShouldSaveTheEvent([Frozen] IEventStore store, TestEvent @event, SaveItAllPolicy sut)
     {
         // Arrange
 

@@ -6,13 +6,13 @@ using Eventsource.BusinessLogic.Events;
 
 namespace Eventsource.Datalayer;
 
-public class EventPersistance: IEventPersistance
+public class EventStore: IEventStore
 {
     private readonly TableServiceClient _serviceClient = new TableServiceClient("UseDevelopmentStorage=true");
     private const string TableName = "EventSource";
     private readonly TableClient _table;
 
-    public EventPersistance()
+    public EventStore()
     {
         _serviceClient.CreateTableIfNotExists(TableName);
         _table = _serviceClient.GetTableClient(TableName);
