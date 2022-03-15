@@ -4,6 +4,7 @@ using System.Linq;
 using Autofac;
 using Eventsource.BusinessLogic.Commands.CreateAccount;
 using Eventsource.BusinessLogic.Commands.DepositFunds;
+using Eventsource.BusinessLogic.Commands.WithdrawFunds;
 using Eventsource.BusinessLogic.Queries.AllActiveAccountsQuery;
 using Eventsource.Datalayer;
 using JohnVerbiest.CQRS.Commands;
@@ -16,6 +17,7 @@ internal class Program
 {
     private static ICommandQueue _commandQueue;
     private static IQueryHandler<AllActiveAccountsQuery, AllActiveAccountsQuery.Result> _accountsQueryHandler;
+    private static IQueryHandler<AccountBalanceQuery, AccountBalanceQuery.Result> _accountBalanceQueryHandler;
 
     private static void Main(string[] args)
     {
@@ -30,6 +32,8 @@ internal class Program
         _commandQueue = container.Resolve<ICommandQueue>();
         _accountsQueryHandler =
             container.Resolve<IQueryHandler<AllActiveAccountsQuery, AllActiveAccountsQuery.Result>>();
+        _accountBalanceQueryHandler =
+            container.Resolve<IQueryHandler<AccountBalanceQuery, AccountBalanceQuery.Result>>();
 
         // This is the event store
         do
@@ -79,7 +83,7 @@ internal class Program
                 case "1":
                     Console.Write("Please enter your name: ");
                     var name = Console.ReadLine();
-                    _commandQueue.QueueForExecution(new CreateAccountCommand(){Name = name}).Wait();
+                    _commandQueue.QueueForExecution(new CreateAccountCommand() { Name = name }).Wait();
                     break;
             }
         } while (true);
@@ -113,7 +117,8 @@ internal class Program
                 Console.WriteLine("What do you want to do?");
                 Console.WriteLine(" 0) Select other account");
                 Console.WriteLine(" 1) Deposit funds");
-                
+                Console.WriteLine(" 2) Withdraw funds");
+
 
                 command = Console.ReadLine();
 
@@ -130,6 +135,26 @@ internal class Program
                             AccountNumber = account.AccountNumber,
                             Amount = depositAmount
                         }).Wait();
+                        break;
+                    case "2":
+                        // Show current balance
+                        var balance = _accountBalanceQueryHandler.Handle(new AccountBalanceQuery()
+                        { AccountNumber = account.AccountNumber }).Result.Balance;
+                        Console.WriteLine($"The account currently holds a balance of {balance}");
+
+                        // Request and process withdrawal
+                        Console.WriteLine($"How much does {account.Name} wants to withdraw?");
+                        var withdrawAmount = decimal.Parse(Console.ReadLine());
+                        _commandQueue.QueueForExecution(new WithdrawFundsCommand()
+                        {
+                            AccountNumber = account.AccountNumber,
+                            Amount = withdrawAmount
+                        });
+
+                        // Show new balance
+                        balance = _accountBalanceQueryHandler.Handle(new AccountBalanceQuery()
+                            { AccountNumber = account.AccountNumber }).Result.Balance;
+                        Console.WriteLine($"The new balance is {balance}");
                         break;
                 }
             } while (account != null);

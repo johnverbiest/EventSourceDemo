@@ -16,11 +16,13 @@
   <ItemGroup>
     <Folder Include="Commands\CreateAccount\" />
     <Folder Include="Commands\DepositFunds\" />
+    <Folder Include="Commands\WithdrawFunds\" />
     <Folder Include="Commands\SendNewAccountToManager\" />
     <Folder Include="Commands\SendWelcomeMail\" />
     <Folder Include="Events\AccountCreated\Policies\" />
     <Folder Include="Events\NewAccountMailedToManager\" />
     <Folder Include="Events\FundsDeposited\" />
+    <Folder Include="Events\FundsWithdrawn\" />
     <Folder Include="Events\WelcomeMailSent\" />
   </ItemGroup>
 

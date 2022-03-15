@@ -1,5 +1,15 @@
 # CQRS & Event Store (small POC)
 
-## Implemented System:
+# Implemented Procedures:
 
-![eventstorm result](assets/EventStorm.png)
+## Create account
+![CreateAccount](assets/CreateAccountProcedure.png)
+
+## Deposit Funds
+![Deposit Funds](assets/DepositFundsProcedure.png)
+
+## Withdraw Funds
+![Withdraw Funds](assets/WithdrawfundsProcedure.png)
+
+## Transfer Funds
+![Transfer Funds](assets/TransferFundsProcedure.png)
