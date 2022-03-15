@@ -17,7 +17,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Eventsource.BusinessLogic",
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Eventsource.BusinessLogic.Tests", "Eventsource.BusinessLogic.Tests\Eventsource.BusinessLogic.Tests.csproj", "{B8DEB299-0509-45A2-97FA-C003A4C94BA0}"
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{013606C9-5FAB-4C6C-9688-FC22118E76B5}"
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Docs", "Docs", "{013606C9-5FAB-4C6C-9688-FC22118E76B5}"
 	ProjectSection(SolutionItems) = preProject
 		readme.md = readme.md
 	EndProjectSection
