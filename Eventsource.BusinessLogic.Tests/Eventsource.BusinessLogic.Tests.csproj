@@ -32,6 +32,7 @@
 
   <ItemGroup>
     <Folder Include="Commands\DepositFunds\" />
+    <Folder Include="Commands\TransferFunds\" />
     <Folder Include="Commands\WithdrawFunds\" />
     <Folder Include="Commands\SendWelcomeMail\" />
   </ItemGroup>

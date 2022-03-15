@@ -16,6 +16,7 @@
   <ItemGroup>
     <Folder Include="Commands\CreateAccount\" />
     <Folder Include="Commands\DepositFunds\" />
+    <Folder Include="Commands\TransferFunds\" />
     <Folder Include="Commands\WithdrawFunds\" />
     <Folder Include="Commands\SendNewAccountToManager\" />
     <Folder Include="Commands\SendWelcomeMail\" />
@@ -23,6 +24,8 @@
     <Folder Include="Events\NewAccountMailedToManager\" />
     <Folder Include="Events\FundsDeposited\" />
     <Folder Include="Events\FundsWithdrawn\" />
+    <Folder Include="Events\FundsTransfered\" />
+    <Folder Include="Events\FundsTranferCancelled\" />
     <Folder Include="Events\WelcomeMailSent\" />
   </ItemGroup>
 

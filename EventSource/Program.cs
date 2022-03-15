@@ -4,6 +4,7 @@ using System.Linq;
 using Autofac;
 using Eventsource.BusinessLogic.Commands.CreateAccount;
 using Eventsource.BusinessLogic.Commands.DepositFunds;
+using Eventsource.BusinessLogic.Commands.TransferFunds;
 using Eventsource.BusinessLogic.Commands.WithdrawFunds;
 using Eventsource.BusinessLogic.Queries.AllActiveAccountsQuery;
 using Eventsource.Datalayer;
@@ -117,7 +118,9 @@ internal class Program
                 Console.WriteLine("What do you want to do?");
                 Console.WriteLine(" 0) Select other account");
                 Console.WriteLine(" 1) Deposit funds");
-                Console.WriteLine(" 2) Withdraw funds");
+                Console.WriteLine(" 2) Show Balance");
+                Console.WriteLine(" 3) Withdraw funds");
+                Console.WriteLine(" 4) Transfer funds");
 
 
                 command = Console.ReadLine();
@@ -136,7 +139,15 @@ internal class Program
                             Amount = depositAmount
                         }).Wait();
                         break;
+
                     case "2":
+                        // Show current balance
+                        var themBalance = _accountBalanceQueryHandler.Handle(new AccountBalanceQuery()
+                            { AccountNumber = account.AccountNumber }).Result.Balance;
+                        Console.WriteLine($"The account currently holds a balance of {themBalance}");
+                        break;
+
+                    case "3":
                         // Show current balance
                         var balance = _accountBalanceQueryHandler.Handle(new AccountBalanceQuery()
                         { AccountNumber = account.AccountNumber }).Result.Balance;
@@ -155,6 +166,44 @@ internal class Program
                         balance = _accountBalanceQueryHandler.Handle(new AccountBalanceQuery()
                             { AccountNumber = account.AccountNumber }).Result.Balance;
                         Console.WriteLine($"The new balance is {balance}");
+                        break;
+
+
+
+                    case "4":
+                        // Show current balance
+                        var curBalance = _accountBalanceQueryHandler.Handle(new AccountBalanceQuery()
+                            { AccountNumber = account.AccountNumber }).Result.Balance;
+                        Console.WriteLine($"The account currently holds a balance of {curBalance}");
+
+                        // Request amount
+                        Console.WriteLine($"How much does {account.Name} wants to tranfer?");
+                        var transferAmount = decimal.Parse(Console.ReadLine());
+
+                        // Request transfer target
+                        Console.WriteLine("To what account?");
+                        foreach (var acc in accounts)
+                        {
+                            Console.WriteLine($" {acc.AccountNumber}) {acc.Name}");
+                        }
+
+                        var input = Console.ReadLine();
+                        var transferTarget =
+                            accounts.Single(x => x.AccountNumber.ToString().Equals(input));
+
+                        Console.WriteLine($"Tranfering {transferAmount} from {account.Name} to {transferTarget.Name} (#{transferTarget.AccountNumber})");
+                        // Do the transfer (or try)
+                        _commandQueue.QueueForExecution(new TransferFundsCommand()
+                        {
+                            AccountNumber = account.AccountNumber,
+                            DestinationAccountNumber = transferTarget.AccountNumber,
+                            Amount = transferAmount
+                        });
+
+                        // Show new balance
+                        curBalance = _accountBalanceQueryHandler.Handle(new AccountBalanceQuery()
+                            { AccountNumber = account.AccountNumber }).Result.Balance;
+                        Console.WriteLine($"The new balance is {curBalance}");
                         break;
                 }
             } while (account != null);
