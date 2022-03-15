@@ -1,0 +1,29 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netstandard2.1</TargetFramework>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
+    <LangVersion>9</LangVersion>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
+    <LangVersion>9</LangVersion>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Folder Include="Commands\CreateAccount\" />
+    <Folder Include="Commands\SendWelcomeMail\" />
+    <Folder Include="EventStore\DataAccess\" />
+    <Folder Include="Events\AccountCreated\Policies\" />
+    <Folder Include="Dependencies\" />
+    <Folder Include="Events\WelcomeMailSent\" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\JohnVerbiest.CQRS\JohnVerbiest.CQRS.csproj" />
+  </ItemGroup>
+
+</Project>
