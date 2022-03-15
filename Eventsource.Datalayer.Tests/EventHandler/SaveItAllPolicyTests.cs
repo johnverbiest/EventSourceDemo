@@ -2,11 +2,12 @@
 using AutoFixture.Xunit2;
 using Eventsource.BusinessLogic.Dependencies;
 using Eventsource.BusinessLogic.Events;
-using Eventsource.BusinessLogic.EventStore;
+using Eventsource.BusinessLogic.Tests.EventStore;
+using Eventsource.Datalayer.EventHandler;
 using FakeItEasy;
 using Xunit;
 
-namespace Eventsource.BusinessLogic.Tests.EventStore;
+namespace Eventsource.Datalayer.Tests.EventHandler;
 
 public class SaveItAllPolicyTests
 {

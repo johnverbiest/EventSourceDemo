@@ -1,7 +1,9 @@
 ﻿using System;
+using System.Globalization;
 using System.Linq;
 using Autofac;
 using Eventsource.BusinessLogic.Commands.CreateAccount;
+using Eventsource.BusinessLogic.Commands.DepositFunds;
 using Eventsource.BusinessLogic.Queries.AllActiveAccountsQuery;
 using Eventsource.Datalayer;
 using JohnVerbiest.CQRS.Commands;
@@ -110,6 +112,7 @@ internal class Program
                 Console.WriteLine($"Please say {account.Name} hello! You are managing account number {account.AccountNumber}");
                 Console.WriteLine("What do you want to do?");
                 Console.WriteLine(" 0) Select other account");
+                Console.WriteLine(" 1) Deposit funds");
                 
 
                 command = Console.ReadLine();
@@ -120,7 +123,13 @@ internal class Program
                         account = null;
                         break;
                     case "1":
-
+                        Console.WriteLine("How much has to be deposited?");
+                        var depositAmount = decimal.Parse(Console.ReadLine());
+                        _commandQueue.QueueForExecution(new DepositFundsCommand()
+                        {
+                            AccountNumber = account.AccountNumber,
+                            Amount = depositAmount
+                        }).Wait();
                         break;
                 }
             } while (account != null);

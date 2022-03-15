@@ -1,9 +1,8 @@
-﻿using System.Threading.Tasks;
-using Eventsource.BusinessLogic.Dependencies;
+﻿using Eventsource.BusinessLogic.Dependencies;
 using Eventsource.BusinessLogic.Events;
 using JohnVerbiest.CQRS.Events;
 
-namespace Eventsource.BusinessLogic.EventStore
+namespace Eventsource.Datalayer.EventHandler
 {
     public class SaveItAllPolicy: IEventHandler<IBusinessLogicEvent>
     {
