@@ -1,56 +1,86 @@
-﻿using System.Text.Json;
+﻿using System.Collections.Concurrent;
+using System.Text.Json;
 using Azure;
 using Azure.Data.Tables;
 using Eventsource.BusinessLogic.Dependencies;
 using Eventsource.BusinessLogic.Events;
+using Microsoft.Extensions.Caching.Memory;
 
 namespace Eventsource.Datalayer;
 
 public class EventStore: IEventStore
 {
     private readonly TableServiceClient _serviceClient = new TableServiceClient("UseDevelopmentStorage=true");
-    private const string TableName = "EventSource";
-    private readonly TableClient _table;
+    private const string TablePrefix = "EventSource";
+    private readonly ConcurrentDictionary<Type, TableClient> _tables = new ConcurrentDictionary<Type, TableClient>();
 
-    public EventStore()
-    {
-        _serviceClient.CreateTableIfNotExists(TableName);
-        _table = _serviceClient.GetTableClient(TableName);
-    }
+
 
     public Task SaveEvent<T>(T @event) where T : IBusinessLogicEvent
     {
+        var table = GetTableClient(@event.GetType());
         var entity = Entity.Serialize(@event);
-        return _table.AddEntityAsync(entity);
+        return table.AddEntityAsync(entity);
     }
 
-    public Task<IBusinessLogicEvent[]> LoadEvents(params Type[] eventTypes)
+    private TableClient GetTableClient(Type etype) 
+    {
+        var table = _tables.GetOrAdd(etype, type =>
+        {
+            var tableName = $"{TablePrefix}{type.Name}";
+            _serviceClient.CreateTableIfNotExists(tableName);
+            return _serviceClient.GetTableClient(tableName);
+        });
+        return table;
+    }
+
+    private readonly MemoryCache cache = new MemoryCache(new MemoryCacheOptions());
+    public async Task<IBusinessLogicEvent[]> LoadEvents(int[] accounts, params Type[] eventTypes)
     {
         // Create the filter
-        var filter = string.Join(" or ", eventTypes.Select(e => $"(PartitionKey eq '{e.FullName}')"));
-        
-        // Create the types dictionary for translations
-        var types = eventTypes.ToDictionary(x => x.FullName, x => x);
+        var filter = string.Join(" or ", accounts.Select(e => $"(PartitionKey eq '{e}')"));
+        if (filter != "") filter = $"({filter}) and ";
+        var result = new List<IBusinessLogicEvent>();
 
-        // Getting the entities and converting them to their classes
-        var entities = _table.Query<Entity>(filter: filter);
-        var resultSet =
-            entities.Select(e => (IBusinessLogicEvent)JsonSerializer.Deserialize(e.RawData, types[e.PartitionKey] ?? typeof(AbstractBusinessLogicEvent), new JsonSerializerOptions()));
 
-        return Task.FromResult(resultSet.OrderBy(x => x.EventRaised).ToArray());
+        foreach (var eventType in eventTypes)
+        {
+            var table = GetTableClient(eventType);
+            var cacheKey = $"{table.Name}-{filter}";
+            var loadedEvents = await cache.GetOrCreateAsync(cacheKey, entry => Task.FromResult(new HashSet<Entity>()));
+            var newestEvent = loadedEvents.Any() ? loadedEvents.Max(x => x.Timestamp) : DateTimeOffset.MinValue;
+
+            var entities = table.Query<Entity>(filter: $"{filter}(Timestamp gt datetime'{newestEvent:yyyy-MM-ddTHH:mm:ssZ}')");
+            foreach (var entity in entities)
+            {
+                if (loadedEvents.All(x => x.GetHashCode() != entity.GetHashCode())) loadedEvents.Add(entity);
+            }
+
+            var resultSet =
+                loadedEvents.Select(e => (IBusinessLogicEvent)JsonSerializer.Deserialize(e.RawData, eventType, new JsonSerializerOptions()));
+
+            cache.Set(cacheKey, loadedEvents, TimeSpan.FromMinutes(1));
+
+            result.AddRange(resultSet);
+        }
+
+
+        return result.OrderBy(x => x.EventRaised).ToArray();
     }
 
-
+    
     class Entity: ITableEntity
     {
         public static Entity Serialize<T>(T @event) where T : IBusinessLogicEvent
         {
             var result = new Entity()
             {
-                PartitionKey = @event.GetType().FullName,
+                PartitionKey = @event.AccountNumber.ToString(),
                 RowKey = @event.EventId.ToString(),
                 Timestamp = @event.EventRaised,
                 Raised = @event.EventRaised,
+                AccountNumber = @event.AccountNumber,
+                FullType = @event.GetType().FullName,
                 RawData = JsonSerializer.Serialize(@event, @event.GetType(), new JsonSerializerOptions())
             };
             return result;
@@ -61,7 +91,14 @@ public class EventStore: IEventStore
         public DateTimeOffset? Timestamp { get; set; }
         public ETag ETag { get; set; }
         public DateTime Raised { get; set; }
+        public int AccountNumber { get; set; }
+        public string FullType { get; set; }
         public string RawData { get; set; }
+
+        public override int GetHashCode()
+        {
+            return $"{FullType}|{PartitionKey}|{RowKey}".GetHashCode();
+        }
     }
 
 

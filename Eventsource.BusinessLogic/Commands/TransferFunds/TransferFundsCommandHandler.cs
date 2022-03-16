@@ -1,6 +1,7 @@
 ﻿using System.Threading.Tasks;
 using Eventsource.BusinessLogic.Events.FundsTranferCancelled;
 using Eventsource.BusinessLogic.Events.FundsTransfered;
+using Eventsource.BusinessLogic.Events.FundsTransferedIn;
 using Eventsource.BusinessLogic.Queries.AllActiveAccountsQuery;
 using JohnVerbiest.CQRS.Commands;
 using JohnVerbiest.CQRS.Events;
@@ -26,10 +27,16 @@ namespace Eventsource.BusinessLogic.Commands.TransferFunds
 
             if (balance >= command.Amount)
             {
-                await _eventDistributor.Distribute(new FundsTransferedEvent()
+                await _eventDistributor.Distribute(new FundsTransferedOutEvent()
                 {
                     AccountNumber = command.AccountNumber, 
                     DestinationAccountNumber = command.DestinationAccountNumber,
+                    Amount = command.Amount
+                });
+                await _eventDistributor.Distribute(new FundsTransferedInEvent()
+                {
+                    AccountNumber = command.DestinationAccountNumber,
+                    OriginAccountNumber = command.AccountNumber,
                     Amount = command.Amount
                 });
             }

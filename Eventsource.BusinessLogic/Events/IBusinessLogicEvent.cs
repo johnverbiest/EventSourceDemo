@@ -7,5 +7,6 @@ namespace Eventsource.BusinessLogic.Events
     {
         Guid EventId { get;  }
         DateTime EventRaised { get; }
+        int AccountNumber { get; }
     }
 }

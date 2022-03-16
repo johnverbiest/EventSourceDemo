@@ -2,7 +2,7 @@
 {
     public class FundStranferCancelledEvent: AbstractBusinessLogicEvent
     {
-        public int AccountNumber { get; set; }
+        public override int AccountNumber { get; set; }
         public int DestinationAccountNumber { get; set; }
         public decimal Amount { get; set; }
         public string Reason { get; set; }

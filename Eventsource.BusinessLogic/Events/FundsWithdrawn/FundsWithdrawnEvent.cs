@@ -2,7 +2,7 @@
 {
     public class FundsWithdrawnEvent: AbstractBusinessLogicEvent
     {
-        public int AccountNumber { get; set; }
+        public override int AccountNumber { get; set; }
         public decimal Amount { get; set; }
     }
 }

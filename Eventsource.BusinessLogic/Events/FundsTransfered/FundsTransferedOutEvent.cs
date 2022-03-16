@@ -1,8 +1,8 @@
 ﻿namespace Eventsource.BusinessLogic.Events.FundsTransfered
 {
-    public class FundsTransferedEvent: AbstractBusinessLogicEvent
+    public class FundsTransferedOutEvent: AbstractBusinessLogicEvent
     {
-        public int AccountNumber { get; set; }
+        public override int AccountNumber { get; set; }
         public int DestinationAccountNumber { get; set; }
         public decimal Amount { get; set; }
     }

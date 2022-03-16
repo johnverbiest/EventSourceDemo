@@ -4,6 +4,7 @@ using Eventsource.BusinessLogic.Events.AccountCreated;
 using Eventsource.BusinessLogic.Events.FundsDeposited;
 using Eventsource.BusinessLogic.Events.FundsTranferCancelled;
 using Eventsource.BusinessLogic.Events.FundsTransfered;
+using Eventsource.BusinessLogic.Events.FundsTransferedIn;
 using Eventsource.BusinessLogic.Events.FundsWithdrawn;
 using Eventsource.BusinessLogic.Events.FundsWithdrawnCancelled;
 using Eventsource.BusinessLogic.Events.WelcomeMailSent;
@@ -23,11 +24,12 @@ public class AccountHistoryQueryHandler : IQueryHandler<AccountHistoryQuery, Acc
 
     public async Task<AccountHistoryQuery.Result> Handle(AccountHistoryQuery query)
     {
-        var events = await _store.LoadEvents(
+        var events = await _store.LoadEvents(new[] { query.AccountNumber },
             typeof(AccountCreatedEvent),
             typeof(FundsDepositedEvent),
             typeof(FundStranferCancelledEvent),
-            typeof(FundsTransferedEvent),
+            typeof(FundsTransferedOutEvent),
+            typeof(FundsTransferedInEvent),
             typeof(FundsWithdrawnEvent),
             typeof(FundsWithdrawalCancelledEvent),
             typeof(WelcomeMailSentEvent));
@@ -73,7 +75,7 @@ public class AccountHistoryQueryHandler : IQueryHandler<AccountHistoryQuery, Acc
                         });
                     }
                     break;
-                case FundsTransferedEvent e:
+                case FundsTransferedOutEvent e:
                     if (e.AccountNumber == query.AccountNumber)
                     {
                         balance -= e.Amount;
@@ -84,14 +86,16 @@ public class AccountHistoryQueryHandler : IQueryHandler<AccountHistoryQuery, Acc
                             Description = $"Outgoing Funds Transfer of {e.Amount} to account {e.DestinationAccountNumber}"
                         });
                     }
-                    if (e.DestinationAccountNumber == query.AccountNumber)
+                    break;
+                case FundsTransferedInEvent e:
+                    if (e.AccountNumber == query.AccountNumber)
                     {
-                        balance += e.Amount;
+                        balance = e.Amount;
                         output.Add(new AccountHistoryQuery.Result.HistoryObject()
                         {
                             date = e.EventRaised,
                             Balance = balance,
-                            Description = $"Incoming Funds Transfer of {e.Amount} from account {e.AccountNumber}"
+                            Description = $"Incoming Funds Transfer of {e.Amount} from account {e.OriginAccountNumber}"
                         });
                     }
                     break;

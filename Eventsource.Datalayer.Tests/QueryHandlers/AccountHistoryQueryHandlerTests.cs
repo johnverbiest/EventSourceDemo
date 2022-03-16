@@ -5,6 +5,7 @@ using Eventsource.BusinessLogic.Events.AccountCreated;
 using Eventsource.BusinessLogic.Events.FundsDeposited;
 using Eventsource.BusinessLogic.Events.FundsTranferCancelled;
 using Eventsource.BusinessLogic.Events.FundsTransfered;
+using Eventsource.BusinessLogic.Events.FundsTransferedIn;
 using Eventsource.BusinessLogic.Events.FundsWithdrawn;
 using Eventsource.BusinessLogic.Events.FundsWithdrawnCancelled;
 using Eventsource.BusinessLogic.Events.WelcomeMailSent;
@@ -66,35 +67,35 @@ public class AccountHistoryQueryHandlerTests
     }
 
     [Theory, UnitTest]
-    public async Task AccountHistoryQuery_Should_ProcessFundsTransferred([Frozen] IEventStore store, FundsTransferedEvent testEvent, FundsTransferedEvent otherEvent, AccountHistoryQuery query, AccountHistoryQueryHandler sut)
+    public async Task AccountHistoryQuery_Should_ProcessFundsTransferred([Frozen] IEventStore store, FundsTransferedOutEvent testOutEvent, FundsTransferedOutEvent otherOutEvent, AccountHistoryQuery query, AccountHistoryQueryHandler sut)
     {
         // Arrange
-        query.AccountNumber = testEvent.AccountNumber;
-        otherEvent.AccountNumber = testEvent.AccountNumber + 1;
-        store.InjectEvents(testEvent, otherEvent);
+        query.AccountNumber = testOutEvent.AccountNumber;
+        otherOutEvent.AccountNumber = testOutEvent.AccountNumber + 1;
+        store.InjectEvents(testOutEvent, otherOutEvent);
 
         // Act
         var result = await sut.Handle(query);
 
         // Assert
         result.Events.Should().OnlyContain(x =>
-            x.Balance == -testEvent.Amount && x.date == testEvent.EventRaised && x.Description == $"Outgoing Funds Transfer of {testEvent.Amount} to account {testEvent.DestinationAccountNumber}");
+            x.Balance == -testOutEvent.Amount && x.date == testOutEvent.EventRaised && x.Description == $"Outgoing Funds Transfer of {testOutEvent.Amount} to account {testOutEvent.DestinationAccountNumber}");
     }
 
     [Theory, UnitTest]
-    public async Task AccountHistoryQuery_Should_ProcessIncomingFundsTransferred([Frozen] IEventStore store, FundsTransferedEvent testEvent, FundsTransferedEvent otherEvent, AccountHistoryQuery query, AccountHistoryQueryHandler sut)
+    public async Task AccountHistoryQuery_Should_ProcessIncomingFundsTransferred([Frozen] IEventStore store, FundsTransferedInEvent testOutEvent, FundsTransferedInEvent otherOutEvent, AccountHistoryQuery query, AccountHistoryQueryHandler sut)
     {
         // Arrange
-        query.AccountNumber = testEvent.DestinationAccountNumber;
-        otherEvent.AccountNumber = testEvent.DestinationAccountNumber + testEvent.AccountNumber + 2;
-        store.InjectEvents(testEvent, otherEvent);
+        query.AccountNumber = testOutEvent.AccountNumber;
+        otherOutEvent.AccountNumber = testOutEvent.AccountNumber + testOutEvent.AccountNumber + 2;
+        store.InjectEvents(testOutEvent, otherOutEvent);
 
         // Act
         var result = await sut.Handle(query);
 
         // Assert
         result.Events.Should().OnlyContain(x =>
-            x.Balance == testEvent.Amount && x.date == testEvent.EventRaised && x.Description == $"Incoming Funds Transfer of {testEvent.Amount} from account {testEvent.AccountNumber}");
+            x.Balance == testOutEvent.Amount && x.date == testOutEvent.EventRaised && x.Description == $"Incoming Funds Transfer of {testOutEvent.Amount} from account {testOutEvent.OriginAccountNumber}");
     }
 
     [Theory, UnitTest]

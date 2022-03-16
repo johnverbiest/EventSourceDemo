@@ -24,8 +24,8 @@
     <Folder Include="Events\NewAccountMailedToManager\" />
     <Folder Include="Events\FundsDeposited\" />
     <Folder Include="Events\FundsWithdrawn\" />
-    <Folder Include="Events\FundsTransfered\" />
     <Folder Include="Events\FundsTranferCancelled\" />
+    <Folder Include="Events\FundsTransferedIn\" />
     <Folder Include="Events\WelcomeMailSent\" />
   </ItemGroup>
 

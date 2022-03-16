@@ -2,6 +2,7 @@
 using Eventsource.BusinessLogic.Dependencies;
 using Eventsource.BusinessLogic.Events.FundsDeposited;
 using Eventsource.BusinessLogic.Events.FundsTransfered;
+using Eventsource.BusinessLogic.Events.FundsTransferedIn;
 using Eventsource.BusinessLogic.Events.FundsWithdrawn;
 using Eventsource.BusinessLogic.Queries.AllActiveAccountsQuery;
 using JohnVerbiest.CQRS.Queries;
@@ -19,7 +20,7 @@ public class AccountBalanceQueryHandler: IQueryHandler<AccountBalanceQuery, Acco
 
     public async Task<AccountBalanceQuery.Result> Handle(AccountBalanceQuery query)
     {
-        var events = await _store.LoadEvents(typeof(FundsDepositedEvent), typeof(FundsWithdrawnEvent), typeof(FundsTransferedEvent));
+        var events = await _store.LoadEvents(new [] {query.AccountNumber}, typeof(FundsDepositedEvent), typeof(FundsWithdrawnEvent), typeof(FundsTransferedOutEvent), typeof(FundsTransferedInEvent));
         decimal balance = 0;
 
         foreach (var @event in events)
@@ -32,9 +33,11 @@ public class AccountBalanceQueryHandler: IQueryHandler<AccountBalanceQuery, Acco
                 case FundsWithdrawnEvent e:
                     if (e.AccountNumber == query.AccountNumber) balance -= e.Amount;
                     break;
-                case FundsTransferedEvent e:
+                case FundsTransferedOutEvent e:
                     if (e.AccountNumber == query.AccountNumber) balance -= e.Amount;
-                    if (e.DestinationAccountNumber == query.AccountNumber) balance += e.Amount;
+                    break;
+                case FundsTransferedInEvent e:
+                    if (e.AccountNumber == query.AccountNumber) balance += e.Amount;
                     break;
                 default:
                     throw new ConstraintException($"Event loaded without handler: {@event.GetType().Name}");

@@ -17,7 +17,7 @@ public class AccountNameQueryHandler: IQueryHandler<AccountNameQuery, AccountNam
 
     public async Task<AccountNameQuery.Result> Handle(AccountNameQuery query)
     {
-        var events = (await _store.LoadEvents(typeof(AccountCreatedEvent)));
+        var events = (await _store.LoadEvents(new[] { query.AccountNumber }, typeof(AccountCreatedEvent)));
 
         // Set default value
         var currentName = "<Unknown>";

@@ -2,7 +2,7 @@
 {
     public class WelcomeMailSentEvent: AbstractBusinessLogicEvent
     {
-        public int AccountNumber { get; set; }
+        public override int AccountNumber { get; set; }
         public string Content { get; set; }
     }
 }

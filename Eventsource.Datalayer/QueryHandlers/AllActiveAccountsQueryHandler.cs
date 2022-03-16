@@ -17,7 +17,7 @@ public class AllActiveAccountsQueryHandler: IQueryHandler<AllActiveAccountsQuery
 
     public async Task<AllActiveAccountsQuery.Result> Handle(AllActiveAccountsQuery query)
     {
-        var events = (await _store.LoadEvents(typeof(AccountCreatedEvent)));
+        var events = (await _store.LoadEvents(new int[] {}, typeof(AccountCreatedEvent)));
 
         // Set default value
         var results = new List<AllActiveAccountsQuery.Account>();

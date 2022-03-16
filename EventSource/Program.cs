@@ -1,7 +1,9 @@
 ﻿using System;
 using System.Globalization;
 using System.Linq;
+using System.Threading.Tasks;
 using Autofac;
+using Azure.Data.Tables;
 using Eventsource.BusinessLogic.Commands.CreateAccount;
 using Eventsource.BusinessLogic.Commands.DepositFunds;
 using Eventsource.BusinessLogic.Commands.TransferFunds;
@@ -49,6 +51,7 @@ internal class Program
             Console.WriteLine("What do you want to do?");
             Console.WriteLine(" 1) Login as Random Dude");
             Console.WriteLine(" 2) Login as Bank Meeple");
+            Console.WriteLine(" LoadEm) Put a lot of data in the store");
             Console.WriteLine(" 0) Exit program");
             Console.Write("Please enter your command:");
             var command = Console.ReadLine();
@@ -62,12 +65,63 @@ internal class Program
                 case "2":
                     RunAsBankMeeple();
                     break;
+                case "LoadEm":
+                    LoadEm();
+                    break;
             }
             Console.WriteLine();
             Console.WriteLine();
             Console.WriteLine();
             Console.WriteLine();
         } while (true);
+    }
+
+    private static void LoadEm()
+    {
+        var accounts = 15000;
+        var transactions = 100;
+
+        Parallel.For(1, accounts + 1, i =>
+        {
+            var name = $"LoadEm Account {i}";
+            _commandQueue.QueueForExecution(new CreateAccountCommand() { Name = name }).Wait();
+            var allaccounts = _accountsQueryHandler.Handle(new AllActiveAccountsQuery()).Result.Accounts;
+            var account = allaccounts.OrderByDescending(x => x.AccountNumber).First(x => x.Name == name);
+            var random = new Random(DateTime.UtcNow.Millisecond);
+
+            for (int j = 1; j <= transactions; j++)
+            {
+                var transactionType = random.Next(1000) % 3;
+                switch (transactionType)
+                {
+                    case 0:
+                        Console.WriteLine($"Account {account.AccountNumber}: Deposit");
+                        _commandQueue.QueueForExecution(new DepositFundsCommand()
+                        {
+                            AccountNumber = account.AccountNumber,
+                            Amount = random.Next(0, 1000)
+                        }).Wait();
+                        break;
+                    case 1:
+                        Console.WriteLine($"Account {account.AccountNumber}: Withdraw");
+                        _commandQueue.QueueForExecution(new WithdrawFundsCommand()
+                        {
+                            AccountNumber = account.AccountNumber,
+                            Amount = random.Next(0, 1000)
+                        });
+                        break;
+                    case 2:
+                        Console.WriteLine($"Account {account.AccountNumber}: Transfer");
+                        _commandQueue.QueueForExecution(new TransferFundsCommand()
+                        {
+                            AccountNumber = account.AccountNumber,
+                            DestinationAccountNumber = allaccounts[random.Next(0, allaccounts.Length)].AccountNumber,
+                            Amount = random.Next(0, 1000)
+                        });
+                        break;
+                }
+            }
+        });
     }
 
 
