@@ -47,25 +47,33 @@ public class EventStore: IEventStore
         {
             var table = GetTableClient(eventType);
             var cacheKey = $"{table.Name}-{filter}";
-            var loadedEvents = await cache.GetOrCreateAsync(cacheKey, entry => Task.FromResult(new HashSet<Entity>()));
-            var newestEvent = loadedEvents.Any() ? loadedEvents.Max(x => x.Timestamp) : DateTimeOffset.MinValue;
 
+            var loadedEvents = await cache.GetOrCreateAsync(cacheKey+"-Events", entry => Task.FromResult(new HashSet<Entity>()));
+            var resultSet = await cache.GetOrCreateAsync(cacheKey+"-Results", entry => Task.FromResult(new List<IBusinessLogicEvent>()));
+
+
+
+            var newestEvent = loadedEvents.Any() ? loadedEvents.Max(x => x.Timestamp) : DateTimeOffset.MinValue;
             var entities = table.Query<Entity>(filter: $"{filter}(Timestamp gt datetime'{newestEvent:yyyy-MM-ddTHH:mm:ssZ}')");
             foreach (var entity in entities)
             {
-                if (loadedEvents.All(x => x.GetHashCode() != entity.GetHashCode())) loadedEvents.Add(entity);
+                if (loadedEvents.All(x => x.GetHashCode() != entity.GetHashCode()))
+                {
+                    loadedEvents.Add(entity);
+                    resultSet.Add((IBusinessLogicEvent)JsonSerializer.Deserialize(entity.RawData, eventType, new JsonSerializerOptions()));
+                }
             }
 
-            var resultSet =
-                loadedEvents.Select(e => (IBusinessLogicEvent)JsonSerializer.Deserialize(e.RawData, eventType, new JsonSerializerOptions()));
 
-            cache.Set(cacheKey, loadedEvents, TimeSpan.FromMinutes(1));
+
+            cache.Set(cacheKey + "-Events", loadedEvents, TimeSpan.FromMinutes(1));
+            cache.Set(cacheKey + "-Results", resultSet, TimeSpan.FromMinutes(1));
 
             result.AddRange(resultSet);
         }
 
 
-        return result.OrderBy(x => x.EventRaised).ToArray();
+        return result.OrderBy(x => x.EventRaised.Ticks).ToArray();
     }
 
     

@@ -1,5 +1,7 @@
 ﻿using System;
+using System.Diagnostics;
 using System.Globalization;
+using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using Autofac;
@@ -78,50 +80,60 @@ internal class Program
 
     private static void LoadEm()
     {
-        var accounts = 15000;
+        var accounts = 10;
         var transactions = 100;
+        var random = new Random(DateTime.UtcNow.Millisecond);
 
-        Parallel.For(1, accounts + 1, i =>
+        for (var i = 1; i <= accounts + 1; i++) 
         {
             var name = $"LoadEm Account {i}";
             _commandQueue.QueueForExecution(new CreateAccountCommand() { Name = name }).Wait();
             var allaccounts = _accountsQueryHandler.Handle(new AllActiveAccountsQuery()).Result.Accounts;
             var account = allaccounts.OrderByDescending(x => x.AccountNumber).First(x => x.Name == name);
-            var random = new Random(DateTime.UtcNow.Millisecond);
+        }
 
+        var theFinalAccounts = _accountsQueryHandler.Handle(new AllActiveAccountsQuery()).Result.Accounts;
+        foreach (var account in theFinalAccounts)
+        {
             for (int j = 1; j <= transactions; j++)
             {
                 var transactionType = random.Next(1000) % 3;
                 switch (transactionType)
                 {
                     case 0:
-                        Console.WriteLine($"Account {account.AccountNumber}: Deposit");
+                        Console.Write($"Account {account.AccountNumber}: Deposit");
+                        var depositWatch = Stopwatch.StartNew();
                         _commandQueue.QueueForExecution(new DepositFundsCommand()
                         {
                             AccountNumber = account.AccountNumber,
                             Amount = random.Next(0, 1000)
                         }).Wait();
+                        Console.WriteLine($" done in {depositWatch.ElapsedMilliseconds}ms");
                         break;
                     case 1:
-                        Console.WriteLine($"Account {account.AccountNumber}: Withdraw");
+                        Console.Write($"Account {account.AccountNumber}: Withdraw");
+                        var withdrawWatch = Stopwatch.StartNew();
                         _commandQueue.QueueForExecution(new WithdrawFundsCommand()
                         {
                             AccountNumber = account.AccountNumber,
                             Amount = random.Next(0, 1000)
                         });
+                        Console.WriteLine($" done in {withdrawWatch.ElapsedMilliseconds}ms");
                         break;
                     case 2:
-                        Console.WriteLine($"Account {account.AccountNumber}: Transfer");
+                        Console.Write($"Account {account.AccountNumber}: Transfer");
+                        var transferWatch = Stopwatch.StartNew();
                         _commandQueue.QueueForExecution(new TransferFundsCommand()
                         {
                             AccountNumber = account.AccountNumber,
-                            DestinationAccountNumber = allaccounts[random.Next(0, allaccounts.Length)].AccountNumber,
+                            DestinationAccountNumber = theFinalAccounts[random.Next(0, theFinalAccounts.Length)].AccountNumber,
                             Amount = random.Next(0, 1000)
                         });
+                        Console.WriteLine($" done in {transferWatch.ElapsedMilliseconds}ms");
                         break;
                 }
             }
-        });
+        }
     }
 
 
