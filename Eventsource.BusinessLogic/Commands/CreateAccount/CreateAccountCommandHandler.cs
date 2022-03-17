@@ -21,7 +21,7 @@ namespace Eventsource.BusinessLogic.Commands.CreateAccount
 
 
         public static object theLock = new object();
-        public async Task ExecuteAsync(CreateAccountCommand command)
+        public Task ExecuteAsync(CreateAccountCommand command)
         {
             lock (theLock)
             {
@@ -33,6 +33,7 @@ namespace Eventsource.BusinessLogic.Commands.CreateAccount
                     Name = command.Name
                 }).Wait();
             }
+            return Task.CompletedTask;
         }
     }
 }
