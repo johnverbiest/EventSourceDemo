@@ -2,6 +2,7 @@
 using Eventsource.BusinessLogic.Dependencies;
 using Eventsource.BusinessLogic.Events.AccountCreated;
 using Eventsource.BusinessLogic.Queries.AllActiveAccountsQuery;
+using Eventsource.Datalayer.Appliers;
 using JohnVerbiest.CQRS.Queries;
 
 namespace Eventsource.Datalayer.QueryHandlers;
@@ -28,7 +29,7 @@ public class AccountNameQueryHandler: IQueryHandler<AccountNameQuery, AccountNam
             switch (@event)
             {
                 case AccountCreatedEvent e:
-                    if (e.AccountNumber == query.AccountNumber) currentName = e.Name;
+                    if (e.AccountNumber == query.AccountNumber) currentName = e.Apply().accountName;
                     break;
                 default:
                     throw new ConstraintException($"Event loaded without handler: {@event.GetType().Name}");

@@ -12,6 +12,7 @@ using Eventsource.BusinessLogic.Commands.TransferFunds;
 using Eventsource.BusinessLogic.Commands.WithdrawFunds;
 using Eventsource.BusinessLogic.Queries.AllActiveAccountsQuery;
 using Eventsource.Datalayer;
+using Eventsource.Datalayer.ReadOnlyDb;
 using JohnVerbiest.CQRS.Commands;
 using JohnVerbiest.CQRS.Queries;
 
@@ -53,8 +54,11 @@ internal class Program
             Console.WriteLine("What do you want to do?");
             Console.WriteLine(" 1) Login as Random Dude");
             Console.WriteLine(" 2) Login as Bank Meeple");
-            Console.WriteLine(" LoadEm) Put a lot of data in the store");
             Console.WriteLine(" 0) Exit program");
+            Console.WriteLine("");
+            Console.WriteLine("");
+            Console.WriteLine(" LoadEm) Put a lot of data in the store");
+            Console.WriteLine(" Rebuild) Rebuild the read-only db");
             Console.Write("Please enter your command:");
             var command = Console.ReadLine();
             switch (command)
@@ -70,12 +74,23 @@ internal class Program
                 case "LoadEm":
                     LoadEm();
                     break;
+                case "Rebuild":
+                    Rebuild(container.Resolve<IReadOnlyModelHandler[]>());
+                    break;
             }
             Console.WriteLine();
             Console.WriteLine();
             Console.WriteLine();
             Console.WriteLine();
         } while (true);
+    }
+
+    private static void Rebuild(IReadOnlyModelHandler[] rebuilders)
+    {
+        foreach (var readOnlyModelHandler in rebuilders)
+        {
+            readOnlyModelHandler.Rebuild().Wait();
+        }
     }
 
     private static void LoadEm()

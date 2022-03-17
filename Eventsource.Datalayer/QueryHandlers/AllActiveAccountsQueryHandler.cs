@@ -2,6 +2,7 @@
 using Eventsource.BusinessLogic.Dependencies;
 using Eventsource.BusinessLogic.Events.AccountCreated;
 using Eventsource.BusinessLogic.Queries.AllActiveAccountsQuery;
+using Eventsource.Datalayer.Appliers;
 using JohnVerbiest.CQRS.Queries;
 
 namespace Eventsource.Datalayer.QueryHandlers;
@@ -28,10 +29,11 @@ public class AllActiveAccountsQueryHandler: IQueryHandler<AllActiveAccountsQuery
             switch (@event)
             {
                 case AccountCreatedEvent e:
+                    var result = e.Apply();
                     results.Add(new AllActiveAccountsQuery.Account()
                     {
-                        AccountNumber = e.AccountNumber,
-                        Name = e.Name
+                        AccountNumber = result.accountNumber,
+                        Name = result.accountName
                     });
                     break;
                 default:

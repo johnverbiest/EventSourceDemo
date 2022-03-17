@@ -9,6 +9,7 @@ using Eventsource.BusinessLogic.Events.FundsWithdrawn;
 using Eventsource.BusinessLogic.Events.FundsWithdrawnCancelled;
 using Eventsource.BusinessLogic.Events.WelcomeMailSent;
 using Eventsource.BusinessLogic.Queries.AllActiveAccountsQuery;
+using Eventsource.Datalayer.Appliers;
 using JohnVerbiest.CQRS.Queries;
 
 namespace Eventsource.Datalayer.QueryHandlers;
@@ -55,7 +56,7 @@ public class AccountHistoryQueryHandler : IQueryHandler<AccountHistoryQuery, Acc
                 case FundsDepositedEvent e:
                     if (e.AccountNumber == query.AccountNumber)
                     {
-                        balance += e.Amount;
+                        balance = e.Apply(balance);
                         output.Add(new AccountHistoryQuery.Result.HistoryObject()
                         {
                             date = e.EventRaised,
@@ -78,7 +79,7 @@ public class AccountHistoryQueryHandler : IQueryHandler<AccountHistoryQuery, Acc
                 case FundsTransferedOutEvent e:
                     if (e.AccountNumber == query.AccountNumber)
                     {
-                        balance -= e.Amount;
+                        balance = e.Apply(balance);
                         output.Add(new AccountHistoryQuery.Result.HistoryObject()
                         {
                             date = e.EventRaised,
@@ -90,7 +91,7 @@ public class AccountHistoryQueryHandler : IQueryHandler<AccountHistoryQuery, Acc
                 case FundsTransferedInEvent e:
                     if (e.AccountNumber == query.AccountNumber)
                     {
-                        balance = e.Amount;
+                        balance = e.Apply(balance);
                         output.Add(new AccountHistoryQuery.Result.HistoryObject()
                         {
                             date = e.EventRaised,
@@ -102,7 +103,7 @@ public class AccountHistoryQueryHandler : IQueryHandler<AccountHistoryQuery, Acc
                 case FundsWithdrawnEvent e:
                     if (e.AccountNumber == query.AccountNumber)
                     {
-                        balance -= e.Amount;
+                        balance = e.Apply(balance);
                         output.Add(new AccountHistoryQuery.Result.HistoryObject()
                         {
                             date = e.EventRaised,
